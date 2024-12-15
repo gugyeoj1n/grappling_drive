@@ -5,11 +5,16 @@ public class PlayerController : MonoBehaviour
 {
     private Rigidbody _rigidbody;
 
-    [Header("Rotate Variables")]
+    [Header( "Rotate Variables" )]
     public float mouseSpeed;
     private float xRot;
     private float yRot;
     private Camera _camera;
+
+    [Header( "Move Variables" )]
+    public float moveSpeed;
+    public Vector2 inputValue;
+    public Vector3 moveValue;
 
     void Start( )
     {
@@ -25,6 +30,12 @@ public class PlayerController : MonoBehaviour
     void Update( )
     {
         Rotate( );
+        Move( );
+    }
+
+    private void OnMove( InputValue value )
+    {
+        inputValue = value.Get<Vector2>( );
     }
 
     private void Rotate( )
@@ -38,5 +49,11 @@ public class PlayerController : MonoBehaviour
 
         _camera.transform.rotation = Quaternion.Euler( xRot, yRot, 0 );
         transform.rotation = Quaternion.Euler( 0, yRot, 0 );
+    }
+
+    private void Move( )
+    {
+        moveValue = transform.forward * inputValue.y + transform.right * inputValue.x;
+        transform.position += moveValue.normalized * moveSpeed * Time.deltaTime;
     }
 }
