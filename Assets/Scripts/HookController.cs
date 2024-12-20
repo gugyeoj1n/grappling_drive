@@ -1,9 +1,13 @@
 using UnityEngine;
+using System.Collections;
 
 public class HookController : MonoBehaviour
 {
     public Transform _player;
     public Transform _hookPoint;
+    private Rigidbody _rigidbody;
+    private Vector3 fastMoveStartPosition;
+    private Vector3 fastMoveTargetPosition;
     private Camera _camera;
     private RaycastHit _hit;
     private LineRenderer _line;
@@ -11,10 +15,12 @@ public class HookController : MonoBehaviour
     public bool isGrappling = false;
     private Vector3 hitSpot;
     private SpringJoint _spring;
+    public float fastMoveSpeed;
 
     void Start( )
     {
         _camera = Camera.main;
+        _rigidbody = _player.GetComponent<Rigidbody>( );
         _line = GetComponent<LineRenderer>( );
     }
 
@@ -28,6 +34,17 @@ public class HookController : MonoBehaviour
         if( Input.GetMouseButtonUp( 0 ) )
         {
             EndShoot( );
+        }
+
+        float scrollWheel = Input.GetAxis( "Mouse ScrollWheel" );
+        if ( isGrappling && Mathf.Abs(scrollWheel) > 0f )
+        {
+            if ( scrollWheel < 0f )
+            {
+                fastMoveStartPosition = _player.position;
+                fastMoveTargetPosition = _hit.point;
+                StartCoroutine( FastMoveCoroutine( _player, fastMoveStartPosition, fastMoveTargetPosition, fastMoveSpeed ) );
+            }
         }
 
         DrawHook( );
@@ -69,5 +86,18 @@ public class HookController : MonoBehaviour
         isGrappling = false;
         _line.positionCount = 0;
         Destroy( _spring );
+        transform.rotation = Quaternion.identity;
+    }
+
+    private IEnumerator FastMoveCoroutine( Transform target, Vector3 start, Vector3 end, float speed )
+    {
+        float t = 0f;
+        while ( t < 0.85f )
+        {
+            t += Time.deltaTime * ( speed / Vector3.Distance( start, end ) );
+            Vector3 newPosition = Vector3.Lerp( start, end, t );
+            _rigidbody.linearVelocity = ( newPosition - _player.position ) * fastMoveSpeed;
+            yield return null;
+        }
     }
 }
