@@ -1390,7 +1390,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   isGrappling: 0
-  fastMoveSpeed: 30
+  fastMoveSpeed: 40
 --- !u!65 &1489778816
 BoxCollider:
   m_ObjectHideFlags: 0

@@ -6,16 +6,20 @@ public class HookController : MonoBehaviour
     public Transform _player;
     public Transform _hookPoint;
     private Rigidbody _rigidbody;
+
     private Vector3 fastMoveStartPosition;
     private Vector3 fastMoveTargetPosition;
     private Camera _camera;
     private RaycastHit _hit;
     private LineRenderer _line;
     public LayerMask grapplingObj;
+
     public bool isGrappling = false;
     private Vector3 hitSpot;
     private SpringJoint _spring;
     public float fastMoveSpeed;
+
+    public float dashForce = 20f;
 
     void Start( )
     {
@@ -35,9 +39,14 @@ public class HookController : MonoBehaviour
         {
             EndShoot( );
         }
+        
+        if( Input.GetKey( KeyCode.LeftShift ) )
+        {
+            Dash( );
+        }
 
         float scrollWheel = Input.GetAxis( "Mouse ScrollWheel" );
-        if ( isGrappling && Mathf.Abs(scrollWheel) > 0f )
+        if ( isGrappling && Mathf.Abs( scrollWheel ) > 0f )
         {
             if ( scrollWheel < 0f )
             {
@@ -56,12 +65,10 @@ public class HookController : MonoBehaviour
         {
             isGrappling = true;
             hitSpot = _hit.point;
+            
             _line.positionCount = 2;
-            _line.SetPosition( 0, _hookPoint.position );
-            _line.SetPosition( 1, hitSpot );
-
+            
             float distance = Vector3.Distance( transform.position, hitSpot );
-
             _spring = _player.gameObject.AddComponent<SpringJoint>( );
             _spring.autoConfigureConnectedAnchor = false;
             _spring.connectedAnchor = hitSpot;
@@ -77,6 +84,7 @@ public class HookController : MonoBehaviour
         if( isGrappling )
         {
             _line.SetPosition( 0, _hookPoint.position );
+            _line.SetPosition( 1, hitSpot );
             transform.LookAt( hitSpot );
         }
     }
@@ -86,7 +94,12 @@ public class HookController : MonoBehaviour
         isGrappling = false;
         _line.positionCount = 0;
         Destroy( _spring );
-        transform.rotation = Quaternion.identity;
+        transform.localRotation = Quaternion.identity;
+    }
+
+     private void Dash( )
+    {
+        _rigidbody.AddForce( _camera.transform.forward * dashForce, ForceMode.Force );
     }
 
     private IEnumerator FastMoveCoroutine( Transform target, Vector3 start, Vector3 end, float speed )
