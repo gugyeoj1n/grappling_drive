@@ -20,12 +20,17 @@ public class HookController : MonoBehaviour
     public float fastMoveSpeed;
 
     public float dashForce = 20f;
+    public float maxDashAmount = 100f;
+    public float dashConsumption = 30f;
+    public float dashRegenRate = 20f;
+    public float currentDashAmount;
 
     void Start( )
     {
         _camera = Camera.main;
         _rigidbody = _player.GetComponent<Rigidbody>( );
         _line = GetComponent<LineRenderer>( );
+        currentDashAmount = maxDashAmount;
     }
 
     void Update( )
@@ -39,11 +44,19 @@ public class HookController : MonoBehaviour
         {
             EndShoot( );
         }
-        
-        if( Input.GetKey( KeyCode.LeftShift ) )
+
+        if( Input.GetKey( KeyCode.LeftShift ) && currentDashAmount > 0 )
         {
             Dash( );
+            currentDashAmount -= dashConsumption * Time.deltaTime;
         }
+        else
+        {
+            RegenerateDash( );
+        }
+
+        currentDashAmount = Mathf.Clamp( currentDashAmount, 0f, maxDashAmount );
+        IngameUIManager.instance.SetBoostGauge( currentDashAmount );
 
         float scrollWheel = Input.GetAxis( "Mouse ScrollWheel" );
         if ( isGrappling && Mathf.Abs( scrollWheel ) > 0f )
@@ -97,9 +110,17 @@ public class HookController : MonoBehaviour
         transform.localRotation = Quaternion.identity;
     }
 
-     private void Dash( )
+    private void Dash( )
     {
         _rigidbody.AddForce( _camera.transform.forward * dashForce, ForceMode.Force );
+    }
+
+    private void RegenerateDash( )
+    {
+        if( currentDashAmount < maxDashAmount )
+        {
+            currentDashAmount += dashRegenRate * Time.deltaTime;
+        }
     }
 
     private IEnumerator FastMoveCoroutine( Transform target, Vector3 start, Vector3 end, float speed )
