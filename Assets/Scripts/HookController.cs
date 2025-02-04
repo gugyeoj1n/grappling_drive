@@ -134,4 +134,11 @@ public class HookController : MonoBehaviour
             yield return null;
         }
     }
+
+    public void AddFuel( float value )
+    {
+        currentDashAmount += value;
+        if( currentDashAmount > maxDashAmount )
+            currentDashAmount = maxDashAmount;
+    }
 }
